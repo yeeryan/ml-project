@@ -3,29 +3,29 @@ library(tidyverse)
 
 # Data Setup
 data(iris)
-iris_data <- iris
+dataset <- iris
 
 # Data Validation
-validation_index <- createDataPartition(iris_data$Species, p = 0.8, list = FALSE)
+validation_index <- createDataPartition(dataset$Species, p = 0.8, list = FALSE)
 
-validation <- iris_data[-validation_index]
-iris_data <- iris_data[validation_index,]
+validation <- dataset[-validation_index]
+dataset <- dataset[validation_index,]
 
 # Summarising the Data
-dim(iris_data)
+dim(dataset)
 
-sapply(iris_data, class)
+sapply(dataset, class)
 
-head(iris_data)
+head(dataset)
 
-levels(iris_data$Species)
+levels(dataset$Species)
 
-summary(iris_data)
+summary(dataset)
 
 # Basic Plots
-x <- iris_data[,1:4]
+x <- dataset[,1:4]
 
-y <- iris_data[,5]
+y <- dataset[,5]
 
 # Distribution of Attributes Box Plot
 par(mfrow=c(1,4))
@@ -58,7 +58,7 @@ metric <- "Accuracy"
 set.seed(7)
 fit.lda <- train(
   Species~., 
-  data=iris_data, 
+  data=dataset, 
   method="lda", 
   metric=metric, 
   trControl=control
@@ -69,7 +69,7 @@ fit.lda <- train(
 set.seed(7)
 fit.cart <- train(
   Species~., 
-  data=iris_data, 
+  data=dataset, 
   method="rpart", 
   metric=metric, 
   trControl=control
@@ -80,7 +80,7 @@ fit.cart <- train(
 set.seed(7)
 fit.knn <- train(
   Species~., 
-  data=iris_data, 
+  data=dataset, 
   method="knn", 
   metric=metric, 
   trControl=control
@@ -91,7 +91,7 @@ fit.knn <- train(
 set.seed(7)
 fit.svm <- train(
   Species~., 
-  data=iris_data, 
+  data=dataset, 
   method="svmRadial", 
   metric=metric, 
   trControl=control
@@ -102,10 +102,30 @@ fit.svm <- train(
 set.seed(7)
 fit.rf <- train(
   Species~., 
-  data=iris_data, 
+  data=dataset, 
   method="rf", 
   metric=metric, 
   trControl=control
 )
 
+# Model Selection
 
+results <- resamples(list(
+   lda=fit.lda, 
+   cart=fit.cart, 
+   knn=fit.knn, 
+   svm=fit.svm, 
+   rf=fit.rf
+))
+
+summary(results)
+
+dotplot(results)
+
+print(fit.lda)
+
+# Predictions
+
+predictions <- predict(fit.lda, validation)
+
+confusionMatrix(predictions, validation$Species)
